@@ -1,11 +1,16 @@
+import db
+
 def register():
     username = input("Username: ")
     password = input("Password: ")
-    #TODO: check if user exists
-    #TODO: create user and then display message
+    db.add_user(username, password)
     
 def login():
     username = input("Username: ")
     password = input("Password: ")
-    #TODO: check if credentials match
-    return username
+    user = db.get_user(username, password)
+    if(user):
+        return username
+    else:
+        print("Incorrect login or password")
+        return None

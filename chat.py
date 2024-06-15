@@ -1,20 +1,23 @@
 import paho.mqtt.client as mqtt
+import os
+import db
 from rsa import generate_keys
 from user import register, login
-
 
 broker = 'test.mosquitto.org'
 port = 1883
 public_key = None
 private_key = None
 n = None
+recipient_public_key = None
+recipient_n = None
 
 def encrypt(ascii):
-    global public_key, n #będziemy szyfrować kluczem publicznym drugiej osoby
+    global recipient_public_key, recipient_n
     encrypted_message_list = []
 
     for char in ascii:
-        encrypted = pow(char, public_key, n)
+        encrypted = pow(char, recipient_public_key, recipient_n)
         encrypted_message_list.append(str(encrypted))
 
     encrypted_message = ','.join(encrypted_message_list)
@@ -61,27 +64,31 @@ def start_chat(username):
     global public_key, private_key, n
     public_key, private_key, n = generate_keys()
 
-    #TODO: Dodać jak Kacper to doda
-    #upload_public_key(public_key)
+    db.add_keys(username, public_key, n)
 
     print(f"Connected to chat as {username}. Type 'exit' to quit.")
     recipient = input("Enter the recipient's username: ")
-    #TODO: Dodać jak Kacper doda baze danych
-    #recipient_public_key = get_public_key()
+
+    user = db.get_keys(recipient)
+    if(user == None):
+        print("User is not active yet")
+        db.delete_keys(username)
+        menu()
+        
+    global recipient_public_key, recipient_n
+    recipient_public_key = int(user[1])
+    recipient_n = int(user[2])
 
     print("Enter your message:")
     message = input("")
     
     while True:
-        if message.lower() == 'exit':
-            
-            #TODO: Dodać jak Kacper doda
-            #delete_public_key()
-            
+        if message.lower() == 'exit':            
+            db.delete_keys(username)
             break
 
         encrypted_message = to_number(message)
-        client.publish(f"chat/{recipient}", f"{username}: {encrypted_message}")
+        client.publish(f"chat/{recipient}", f"{encrypted_message}")
         message = input("")
 
     client.loop_stop()
@@ -95,6 +102,7 @@ def menu():
        elif choice == '2':
            username = login()
            if username:
+               os.system('cls')
                start_chat(username)
        elif choice == '3':
            break
@@ -103,6 +111,7 @@ def menu():
 
 
 def main():
+    os.system('cls')
     print("Welcome to Secure Communicator\n")
     menu()
 
