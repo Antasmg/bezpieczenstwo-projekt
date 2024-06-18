@@ -1,3 +1,5 @@
+# Created by Antoni Marcinek and Kacper Kureń at Collegium Da Vinic
+
 import db
 
 def register():

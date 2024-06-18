@@ -1,3 +1,5 @@
+# Created by Antoni Marcinek and Kacper Kureń at Collegium Da Vinic
+
 import paho.mqtt.client as mqtt
 import os
 import db
